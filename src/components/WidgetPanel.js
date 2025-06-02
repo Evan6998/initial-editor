@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import SummaryWidget from "../widgets/SummaryWidget";
 
@@ -77,50 +77,24 @@ const WidgetActions = ({ isEditing, onEdit, onSave, onDelete }) => (
   </>
 );
 
-const WidgetPanel = ({ 
-  widgets: initialWidgets, 
-  mode = "editor",
-  editingWidgetId,
-  onEditWidget,
-  onSaveWidget,
-  onWidgetsChange,
-  disableEdit = false,
-}) => {
+const WidgetPanel = ({ widgets, mode = "editor" }) => {
   const [showModal, setShowModal] = useState(false);
-  const [localWidgets, setLocalWidgets] = useState(initialWidgets);
-
-  // Update local widgets when props change
-  useEffect(() => {
-    setLocalWidgets(initialWidgets);
-  }, [initialWidgets]);
-
-  // Notify parent of widget changes
-  useEffect(() => {
-    if (onWidgetsChange) {
-      onWidgetsChange(localWidgets);
-    }
-  }, [localWidgets, onWidgetsChange]);
+  const [localWidgets, setLocalWidgets] = useState(widgets);
+  const [editingWidgetId, setEditingWidgetId] = useState(null);
 
   const handleSelectTemplate = (template) => {
     const newWidget = {
       id: Date.now(),
       type: template.type,
       data: template.defaultData,
-      position: localWidgets.length, // Add position based on current length
     };
     setLocalWidgets([...localWidgets, newWidget]);
     setShowModal(false);
   };
 
   const handleDeleteWidget = (id) => {
-    const updatedWidgets = localWidgets
-      .filter((widget) => widget.id !== id)
-      .map((widget, index) => ({
-        ...widget,
-        position: index, // Update positions after deletion
-      }));
-    setLocalWidgets(updatedWidgets);
-    if (editingWidgetId === id) onEditWidget(null);
+    setLocalWidgets(localWidgets.filter((widget) => widget.id !== id));
+    if (editingWidgetId === id) setEditingWidgetId(null);
   };
 
   const handleWidgetChange = (id, newData) => {
@@ -145,14 +119,14 @@ const WidgetPanel = ({
           mode={mode}
           editing={isEditing}
           onChange={isEditable && isEditing ? (newData) => handleWidgetChange(widget.id, newData) : undefined}
-          onEdit={isEditable && !isEditing ? () => onEditWidget(widget.id) : undefined}
-          onSave={isEditable && isEditing ? onSaveWidget : undefined}
+          onEdit={isEditable && !isEditing ? () => setEditingWidgetId(widget.id) : undefined}
+          onSave={isEditable && isEditing ? () => setEditingWidgetId(null) : undefined}
         />
         {isEditable && (
           <WidgetActions
             isEditing={isEditing}
-            onEdit={() => onEditWidget(widget.id)}
-            onSave={onSaveWidget}
+            onEdit={() => setEditingWidgetId(widget.id)}
+            onSave={() => setEditingWidgetId(null)}
             onDelete={() => handleDeleteWidget(widget.id)}
           />
         )}
@@ -167,7 +141,7 @@ const WidgetPanel = ({
       ) : (
         localWidgets.map(renderWidget)
       )}
-      {mode === "editor" && !disableEdit && (
+      {mode === "editor" && (
         <button
           onClick={() => setShowModal(true)}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
@@ -192,15 +166,9 @@ WidgetPanel.propTypes = {
       id: PropTypes.number.isRequired,
       type: PropTypes.string.isRequired,
       data: PropTypes.object.isRequired,
-      position: PropTypes.number,
     })
   ).isRequired,
   mode: PropTypes.oneOf(["editor", "display"]),
-  editingWidgetId: PropTypes.number,
-  onEditWidget: PropTypes.func.isRequired,
-  onSaveWidget: PropTypes.func.isRequired,
-  onWidgetsChange: PropTypes.func,
-  disableEdit: PropTypes.bool,
 };
 
 WidgetTemplateModal.propTypes = {
