@@ -165,12 +165,14 @@ const CompanyHeader = ({
           isEditing={isEditing}
           onBrandNameChange={handleBrandNameChange}
         />
-        <ActionButtons
-          isEditing={isEditing}
-          onEdit={onEdit}
-          onSave={onSave}
-          disableEdit={disableEdit}
-        />
+        {mode === "editor" && (
+          <ActionButtons
+            isEditing={isEditing}
+            onEdit={onEdit}
+            onSave={onSave}
+            disableEdit={disableEdit}
+          />
+        )}
       </div>
     </div>
   );
