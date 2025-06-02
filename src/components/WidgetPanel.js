@@ -77,9 +77,40 @@ const WidgetActions = ({ isEditing, onEdit, onSave, onDelete }) => (
   </>
 );
 
+const InsertionPoint = ({ onClick }) => (
+  <div
+    className="relative my-4 w-full flex items-center justify-center cursor-pointer group"
+    onClick={onClick}
+  >
+    <div className="flex items-center w-full px-1 opacity-30 group-hover:opacity-100 transition-opacity">
+      {/* left dashed line */}
+      <div
+        className="flex-1 h-[2px]"                  // total height: 2 px
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(to right,rgb(159, 214, 179) 0 20px, transparent 20px 28px)',
+        }}
+      />
+      {/* plus button */}
+      <div className="mx-3 w-7 h-7 z-10 bg-green-500 group-hover:bg-green-600 rounded-full flex items-center justify-center shadow-md">
+        <span className="text-white text-lg font-bold leading-none">+</span>
+      </div>
+      {/* right dashed line */}
+      <div
+        className="flex-1 h-[2px]"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(to right, rgb(159, 214, 179) 0 20px, transparent 20px 28px)',
+        }}
+      />
+    </div>
+  </div>
+);
+
 const WidgetPanel = ({ widgets, mode = "editor", onChange }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingWidgetId, setEditingWidgetId] = useState(null);
+  const [insertPosition, setInsertPosition] = useState(null);
 
   const handleSelectTemplate = (template) => {
     const newWidget = {
@@ -87,8 +118,19 @@ const WidgetPanel = ({ widgets, mode = "editor", onChange }) => {
       type: template.type,
       data: template.defaultData,
     };
-    onChange([...widgets, newWidget]);
+    
+    if (insertPosition === null) {
+      // Append to the end
+      onChange([...widgets, newWidget]);
+    } else {
+      // Insert at specific position
+      const newWidgets = [...widgets];
+      newWidgets.splice(insertPosition, 0, newWidget);
+      onChange(newWidgets);
+    }
+    
     setShowModal(false);
+    setInsertPosition(null);
   };
 
   const handleDeleteWidget = (id) => {
@@ -102,7 +144,7 @@ const WidgetPanel = ({ widgets, mode = "editor", onChange }) => {
     ));
   };
 
-  const renderWidget = (widget) => {
+  const renderWidget = (widget, index) => {
     const template = WIDGET_TEMPLATES.find((t) => t.type === widget.type);
     if (!template) return null;
 
@@ -111,48 +153,68 @@ const WidgetPanel = ({ widgets, mode = "editor", onChange }) => {
     const isEditing = editingWidgetId === widget.id;
 
     return (
-      <div key={widget.id} className="relative mb-4 w-full">
-        <WidgetComponent
-          data={widget.data}
-          editable={isEditable && isEditing}
-          mode={mode}
-          editing={isEditing}
-          onChange={isEditable && isEditing ? (newData) => handleWidgetChange(widget.id, newData) : undefined}
-          onEdit={isEditable && !isEditing ? () => setEditingWidgetId(widget.id) : undefined}
-          onSave={isEditable && isEditing ? () => setEditingWidgetId(null) : undefined}
-        />
-        {isEditable && (
-          <WidgetActions
-            isEditing={isEditing}
-            onEdit={() => setEditingWidgetId(widget.id)}
-            onSave={() => setEditingWidgetId(null)}
-            onDelete={() => handleDeleteWidget(widget.id)}
+      <React.Fragment key={widget.id}>
+        {mode === "editor" && (
+          <InsertionPoint 
+            onClick={() => {
+              setInsertPosition(index);
+              setShowModal(true);
+            }}
           />
         )}
-      </div>
+        <div className="relative mb-4 w-full">
+          <WidgetComponent
+            data={widget.data}
+            editable={isEditable && isEditing}
+            mode={mode}
+            editing={isEditing}
+            onChange={isEditable && isEditing ? (newData) => handleWidgetChange(widget.id, newData) : undefined}
+            onEdit={isEditable && !isEditing ? () => setEditingWidgetId(widget.id) : undefined}
+            onSave={isEditable && isEditing ? () => setEditingWidgetId(null) : undefined}
+          />
+          {isEditable && (
+            <WidgetActions
+              isEditing={isEditing}
+              onEdit={() => setEditingWidgetId(widget.id)}
+              onSave={() => setEditingWidgetId(null)}
+              onDelete={() => handleDeleteWidget(widget.id)}
+            />
+          )}
+        </div>
+      </React.Fragment>
     );
   };
 
   return (
     <div className="bg-gray-50 border-dashed border-2 border-gray-300 rounded-2xl p-8 min-h-[300px] flex flex-col items-center justify-center mb-6">
-      {widgets.length === 0 ? (
-        <p className="text-gray-400">No widgets yet. Add one to get started!</p>
+      {mode === "editor" && widgets.length === 0 ? (
+        <InsertionPoint 
+          onClick={() => {
+            setInsertPosition(null);
+            setShowModal(true);
+          }}
+        />
       ) : (
-        widgets.map(renderWidget)
-      )}
-      {mode === "editor" && (
-        <button
-          onClick={() => setShowModal(true)}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
-        >
-          + Add Widget
-        </button>
+        <>
+          {widgets.map(renderWidget)}
+          {mode === "editor" && (
+            <InsertionPoint 
+              onClick={() => {
+                setInsertPosition(null);
+                setShowModal(true);
+              }}
+            />
+          )}
+        </>
       )}
       {showModal && (
         <WidgetTemplateModal
           templates={WIDGET_TEMPLATES}
           onSelect={handleSelectTemplate}
-          onClose={() => setShowModal(false)}
+          onClose={() => {
+            setShowModal(false);
+            setInsertPosition(null);
+          }}
         />
       )}
     </div>
