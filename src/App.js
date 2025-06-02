@@ -1,25 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import Sidebar from "./components/Sidebar";
+import CompanyBanner from "./components/CompanyBanner";
+import CompanyHeader from "./components/CompanyHeader";
+import WidgetPanel from "./components/WidgetPanel";
 
-function App() {
+function CompanyProfileEditor() {
+  const [widgets, setWidgets] = useState([]);
+
+  const handleAddWidget = () => {
+    setWidgets([...widgets, { id: Date.now(), type: "basic" }]);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="flex bg-blue-50 min-h-screen">
+      <Sidebar />
+
+      {/* Main Content */}
+      <div className="p-4 max-w-5xl mx-auto w-full">
+        <CompanyBanner />
+        <CompanyHeader />
+        <WidgetPanel widgets={widgets} handleAddWidget={handleAddWidget} />
+      </div>
     </div>
   );
 }
 
-export default App;
+export default CompanyProfileEditor;
