@@ -3,18 +3,23 @@ import CompanyBanner from "./CompanyBanner";
 import CompanyHeader from "./CompanyHeader";
 import WidgetPanel from "./WidgetPanel";
 
-// This component is a presentational wrapper for the company profile section.
-// It receives all data and mode as props and passes them to its children.
+// editingSection: 'banner' | 'header' | widget id | null
 const CompanyProfileSection = ({
   mode = "display",
-  bannerData,
-  headerData,
-  widgets,
+  bannerData: initialBannerData,
+  headerData: initialHeaderData,
+  widgets: initialWidgets,
 }) => {
   const [editingSection, setEditingSection] = useState(null);
+  const [bannerData, setBannerData] = useState(initialBannerData || {});
+  const [headerData, setHeaderData] = useState(initialHeaderData || {});
+  const [widgets, setWidgets] = useState(initialWidgets || []);
 
   const handleEdit = (section) => setEditingSection(section);
   const handleSave = () => setEditingSection(null);
+
+  const handleBannerChange = (newData) => setBannerData(newData);
+  const handleHeaderChange = (newData) => setHeaderData(newData);
 
   return (
     <section>
@@ -24,6 +29,7 @@ const CompanyProfileSection = ({
         editing={editingSection === "banner"}
         onEdit={() => handleEdit("banner")}
         onSave={handleSave}
+        onChange={handleBannerChange}
         disableEdit={editingSection !== null && editingSection !== "banner"}
       />
       <CompanyHeader
@@ -32,6 +38,7 @@ const CompanyProfileSection = ({
         editing={editingSection === "header"}
         onEdit={() => handleEdit("header")}
         onSave={handleSave}
+        onChange={handleHeaderChange}
         disableEdit={editingSection !== null && editingSection !== "header"}
       />
       <WidgetPanel
@@ -46,4 +53,4 @@ const CompanyProfileSection = ({
   );
 };
 
-export default CompanyProfileSection; 
+export default CompanyProfileSection;

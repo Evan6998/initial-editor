@@ -125,4 +125,4 @@ const SummaryWidget = ({ data, editable, mode, editing, onChange }) => {
   );
 };
 
-export default SummaryWidget; 
+export default SummaryWidget;
