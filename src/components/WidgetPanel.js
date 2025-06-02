@@ -77,9 +77,8 @@ const WidgetActions = ({ isEditing, onEdit, onSave, onDelete }) => (
   </>
 );
 
-const WidgetPanel = ({ widgets, mode = "editor" }) => {
+const WidgetPanel = ({ widgets, mode = "editor", onChange }) => {
   const [showModal, setShowModal] = useState(false);
-  const [localWidgets, setLocalWidgets] = useState(widgets);
   const [editingWidgetId, setEditingWidgetId] = useState(null);
 
   const handleSelectTemplate = (template) => {
@@ -88,17 +87,17 @@ const WidgetPanel = ({ widgets, mode = "editor" }) => {
       type: template.type,
       data: template.defaultData,
     };
-    setLocalWidgets([...localWidgets, newWidget]);
+    onChange([...widgets, newWidget]);
     setShowModal(false);
   };
 
   const handleDeleteWidget = (id) => {
-    setLocalWidgets(localWidgets.filter((widget) => widget.id !== id));
+    onChange(widgets.filter((widget) => widget.id !== id));
     if (editingWidgetId === id) setEditingWidgetId(null);
   };
 
   const handleWidgetChange = (id, newData) => {
-    setLocalWidgets(localWidgets.map(widget => 
+    onChange(widgets.map(widget => 
       widget.id === id ? { ...widget, data: newData } : widget
     ));
   };
@@ -136,10 +135,10 @@ const WidgetPanel = ({ widgets, mode = "editor" }) => {
 
   return (
     <div className="bg-gray-50 border-dashed border-2 border-gray-300 rounded-2xl p-8 min-h-[300px] flex flex-col items-center justify-center mb-6">
-      {localWidgets.length === 0 ? (
+      {widgets.length === 0 ? (
         <p className="text-gray-400">No widgets yet. Add one to get started!</p>
       ) : (
-        localWidgets.map(renderWidget)
+        widgets.map(renderWidget)
       )}
       {mode === "editor" && (
         <button
@@ -169,6 +168,7 @@ WidgetPanel.propTypes = {
     })
   ).isRequired,
   mode: PropTypes.oneOf(["editor", "display"]),
+  onChange: PropTypes.func.isRequired,
 };
 
 WidgetTemplateModal.propTypes = {

@@ -20,6 +20,7 @@ const CompanyProfileSection = ({
 
   const handleBannerChange = (newData) => setBannerData(newData);
   const handleHeaderChange = (newData) => setHeaderData(newData);
+  const handleWidgetChange = (newWidgets) => setWidgets(newWidgets);
 
   return (
     <section>
@@ -47,6 +48,7 @@ const CompanyProfileSection = ({
         editingWidgetId={typeof editingSection === "number" ? editingSection : null}
         onEditWidget={id => handleEdit(id)}
         onSaveWidget={handleSave}
+        onChange={handleWidgetChange}
         disableEdit={editingSection !== null && typeof editingSection !== "number"}
       />
     </section>
