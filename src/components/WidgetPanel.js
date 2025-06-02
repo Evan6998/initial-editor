@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import SummaryWidget from "../widgets/SummaryWidget";
 
 const WIDGET_TEMPLATES = [
@@ -20,7 +21,62 @@ const WIDGET_TEMPLATES = [
   },
 ];
 
-// mode: 'editor' | 'display'
+const WidgetTemplateModal = ({ templates, onSelect, onClose }) => (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+    <div className="bg-white rounded-xl shadow-lg p-6 min-w-[300px]">
+      <h3 className="text-lg font-semibold mb-4">Select a Widget Template</h3>
+      <ul>
+        {templates.map((template) => (
+          <li key={template.type} className="mb-2">
+            <button
+              className="w-full text-left px-4 py-2 rounded hover:bg-gray-100"
+              onClick={() => onSelect(template)}
+            >
+              {template.name}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button
+        className="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+        onClick={onClose}
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+);
+
+const WidgetActions = ({ isEditing, onEdit, onSave, onDelete }) => (
+  <>
+    {!isEditing && (
+      <button
+        onClick={onEdit}
+        className="absolute top-2 right-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow"
+        title="Edit Widget"
+      >
+        ✎
+      </button>
+    )}
+    {isEditing && (
+      <button
+        onClick={onSave}
+        className="absolute top-2 right-12 bg-green-500 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow"
+        title="Save Widget"
+      >
+        ✓
+      </button>
+    )}
+    <button
+      onClick={onDelete}
+      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow"
+      title="Delete Widget"
+    >
+      &times;
+    </button>
+  </>
+);
+
 const WidgetPanel = ({ widgets, mode = "editor" }) => {
   const [showModal, setShowModal] = useState(false);
   const [localWidgets, setLocalWidgets] = useState(widgets);
@@ -42,18 +98,19 @@ const WidgetPanel = ({ widgets, mode = "editor" }) => {
   };
 
   const handleWidgetChange = (id, newData) => {
-    setLocalWidgets(localWidgets.map(widget => widget.id === id ? { ...widget, data: newData } : widget));
+    setLocalWidgets(localWidgets.map(widget => 
+      widget.id === id ? { ...widget, data: newData } : widget
+    ));
   };
-
-  const handleEdit = (id) => setEditingWidgetId(id);
-  const handleSave = () => setEditingWidgetId(null);
 
   const renderWidget = (widget) => {
     const template = WIDGET_TEMPLATES.find((t) => t.type === widget.type);
     if (!template) return null;
+
     const WidgetComponent = template.component;
     const isEditable = template.editable && mode === "editor";
     const isEditing = editingWidgetId === widget.id;
+
     return (
       <div key={widget.id} className="relative mb-4 w-full">
         <WidgetComponent
@@ -62,35 +119,16 @@ const WidgetPanel = ({ widgets, mode = "editor" }) => {
           mode={mode}
           editing={isEditing}
           onChange={isEditable && isEditing ? (newData) => handleWidgetChange(widget.id, newData) : undefined}
-          onEdit={isEditable && !isEditing ? () => handleEdit(widget.id) : undefined}
-          onSave={isEditable && isEditing ? handleSave : undefined}
+          onEdit={isEditable && !isEditing ? () => setEditingWidgetId(widget.id) : undefined}
+          onSave={isEditable && isEditing ? () => setEditingWidgetId(null) : undefined}
         />
-        {isEditable && !isEditing && (
-          <button
-            onClick={() => handleEdit(widget.id)}
-            className="absolute top-2 right-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow"
-            title="Edit Widget"
-          >
-            ✎
-          </button>
-        )}
-        {isEditable && isEditing && (
-          <button
-            onClick={handleSave}
-            className="absolute top-2 right-12 bg-green-500 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow"
-            title="Save Widget"
-          >
-            ✓
-          </button>
-        )}
         {isEditable && (
-          <button
-            onClick={() => handleDeleteWidget(widget.id)}
-            className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow"
-            title="Delete Widget"
-          >
-            &times;
-          </button>
+          <WidgetActions
+            isEditing={isEditing}
+            onEdit={() => setEditingWidgetId(widget.id)}
+            onSave={() => setEditingWidgetId(null)}
+            onDelete={() => handleDeleteWidget(widget.id)}
+          />
         )}
       </div>
     );
@@ -112,32 +150,46 @@ const WidgetPanel = ({ widgets, mode = "editor" }) => {
         </button>
       )}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 min-w-[300px]">
-            <h3 className="text-lg font-semibold mb-4">Select a Widget Template</h3>
-            <ul>
-              {WIDGET_TEMPLATES.map((template) => (
-                <li key={template.type} className="mb-2">
-                  <button
-                    className="w-full text-left px-4 py-2 rounded hover:bg-gray-100"
-                    onClick={() => handleSelectTemplate(template)}
-                  >
-                    {template.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button
-              className="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              onClick={() => setShowModal(false)}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+        <WidgetTemplateModal
+          templates={WIDGET_TEMPLATES}
+          onSelect={handleSelectTemplate}
+          onClose={() => setShowModal(false)}
+        />
       )}
     </div>
   );
+};
+
+WidgetPanel.propTypes = {
+  widgets: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      type: PropTypes.string.isRequired,
+      data: PropTypes.object.isRequired,
+    })
+  ).isRequired,
+  mode: PropTypes.oneOf(["editor", "display"]),
+};
+
+WidgetTemplateModal.propTypes = {
+  templates: PropTypes.arrayOf(
+    PropTypes.shape({
+      type: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      component: PropTypes.elementType.isRequired,
+      editable: PropTypes.bool.isRequired,
+      defaultData: PropTypes.object.isRequired,
+    })
+  ).isRequired,
+  onSelect: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
+
+WidgetActions.propTypes = {
+  isEditing: PropTypes.bool.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
 };
 
 export default WidgetPanel;
