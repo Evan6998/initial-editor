@@ -82,15 +82,13 @@ BannerActions.propTypes = {
 const CompanyBanner = ({
   data = {},
   mode = "display",
-  editing = false,
-  onEdit,
-  onSave,
+  editingSection,
+  setEditingSection,
   onChange,
-  disableEdit = false,
 }) => {
   const [localImage, setLocalImage] = useState(null);
   const fileInputRef = useRef();
-  const isEditing = mode === "editor" && editing;
+  const isEditing = mode === "editor" && editingSection === "banner";
   const imageUrl = localImage || data?.imageUrl || "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Aerial_view_of_Apple_Park.jpg/2560px-Aerial_view_of_Apple_Park.jpg";
 
   const handleFileChange = (e) => {
@@ -114,14 +112,12 @@ const CompanyBanner = ({
   return (
     <div className="relative rounded-2xl overflow-hidden shadow mb-6">
       <BannerImage imageUrl={imageUrl} />
-      
-      {mode === "editor" && !isEditing && (
-        <EditButton onEdit={onEdit} disabled={disableEdit} />
+      {mode === "editor" && !isEditing && editingSection === null && (
+        <EditButton onEdit={() => setEditingSection("banner")} />
       )}
-      
       {isEditing && (
         <BannerActions
-          onSave={onSave}
+          onSave={() => setEditingSection(null)}
           onUploadClick={handleUploadClick}
           fileInputRef={fileInputRef}
           onFileChange={handleFileChange}
@@ -136,11 +132,12 @@ CompanyBanner.propTypes = {
     imageUrl: PropTypes.string,
   }),
   mode: PropTypes.oneOf(["display", "editor"]),
-  editing: PropTypes.bool,
-  onEdit: PropTypes.func,
-  onSave: PropTypes.func,
+  editingSection: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
+  setEditingSection: PropTypes.func.isRequired,
   onChange: PropTypes.func,
-  disableEdit: PropTypes.bool,
 };
 
 export default CompanyBanner;

@@ -89,7 +89,7 @@ CompanyInfo.propTypes = {
 /**
  * ActionButtons component handles the edit and save actions
  */
-const ActionButtons = ({ isEditing, onEdit, onSave, disableEdit }) => {
+const ActionButtons = ({ isEditing, onEdit, onSave }) => {
   if (!isEditing && !onEdit) return null;
 
   return isEditing ? (
@@ -104,8 +104,7 @@ const ActionButtons = ({ isEditing, onEdit, onSave, disableEdit }) => {
     <button
       className="ml-4 bg-white bg-opacity-80 rounded-full p-2 shadow hover:bg-opacity-100"
       onClick={onEdit}
-      disabled={disableEdit}
-      title={disableEdit ? "Finish editing other section first" : "Edit Header"}
+      title="Edit Header"
     >
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20h9" />
@@ -119,7 +118,6 @@ ActionButtons.propTypes = {
   isEditing: PropTypes.bool.isRequired,
   onEdit: PropTypes.func,
   onSave: PropTypes.func,
-  disableEdit: PropTypes.bool,
 };
 
 /**
@@ -129,14 +127,12 @@ ActionButtons.propTypes = {
 const CompanyHeader = ({
   data = {},
   mode = "display",
-  editing = false,
-  onEdit,
-  onSave,
+  editingSection,
+  setEditingSection,
   onChange,
-  disableEdit = false,
 }) => {
   const [localLogo, setLocalLogo] = useState(null);
-  const isEditing = mode === "editor" && editing;
+  const isEditing = mode === "editor" && editingSection === "header";
   const logoUrl = localLogo || data?.logoUrl || "https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png?202110180743";
 
   const handleLogoChange = (newLogoUrl) => {
@@ -165,12 +161,16 @@ const CompanyHeader = ({
           isEditing={isEditing}
           onBrandNameChange={handleBrandNameChange}
         />
-        {mode === "editor" && (
+        {mode === "editor" && !isEditing && editingSection === null && (
           <ActionButtons
-            isEditing={isEditing}
-            onEdit={onEdit}
-            onSave={onSave}
-            disableEdit={disableEdit}
+            isEditing={false}
+            onEdit={() => setEditingSection("header")}
+          />
+        )}
+        {isEditing && (
+          <ActionButtons
+            isEditing={true}
+            onSave={() => setEditingSection(null)}
           />
         )}
       </div>
@@ -186,11 +186,12 @@ CompanyHeader.propTypes = {
     price: PropTypes.string,
   }),
   mode: PropTypes.oneOf(["display", "editor"]),
-  editing: PropTypes.bool,
-  onEdit: PropTypes.func,
-  onSave: PropTypes.func,
+  editingSection: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
+  setEditingSection: PropTypes.func.isRequired,
   onChange: PropTypes.func,
-  disableEdit: PropTypes.bool,
 };
 
 export default CompanyHeader;

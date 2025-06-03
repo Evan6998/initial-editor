@@ -15,9 +15,6 @@ const CompanyProfileSection = ({
   const [headerData, setHeaderData] = useState(initialHeaderData || {});
   const [widgets, setWidgets] = useState(initialWidgets || []);
 
-  const handleEdit = (section) => setEditingSection(section);
-  const handleSave = () => setEditingSection(null);
-
   const handleBannerChange = (newData) => setBannerData(newData);
   const handleHeaderChange = (newData) => setHeaderData(newData);
   const handleWidgetChange = (newWidgets) => setWidgets(newWidgets);
@@ -27,29 +24,21 @@ const CompanyProfileSection = ({
       <CompanyBanner
         data={bannerData}
         mode={mode}
-        editing={editingSection === "banner"}
-        onEdit={() => handleEdit("banner")}
-        onSave={handleSave}
+        editingSection={editingSection}
+        setEditingSection={setEditingSection}
         onChange={handleBannerChange}
-        disableEdit={editingSection !== null && editingSection !== "banner"}
       />
       <CompanyHeader
         data={headerData}
         mode={mode}
-        editing={editingSection === "header"}
-        onEdit={() => handleEdit("header")}
-        onSave={handleSave}
+        editingSection={editingSection}
+        setEditingSection={setEditingSection}
         onChange={handleHeaderChange}
-        disableEdit={editingSection !== null && editingSection !== "header"}
       />
       <WidgetPanel
         widgets={widgets}
         mode={mode}
-        editingWidgetId={typeof editingSection === "number" ? editingSection : null}
-        onEditWidget={id => handleEdit(id)}
-        onSaveWidget={handleSave}
         onChange={handleWidgetChange}
-        disableEdit={editingSection !== null && typeof editingSection !== "number"}
       />
     </section>
   );
