@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import SummaryWidget from "../widgets/SummaryWidget";
+import DescriptionWidget from "../widgets/DescriptionWidget";
 
 const WIDGET_TEMPLATES = [
   {
     type: "summary",
     name: "Summary",
+    description: "Summary of the company",
+    icon: (
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" className="text-blue-500"><rect x="4" y="6" width="16" height="4" rx="2" fill="currentColor"/><rect x="4" y="14" width="10" height="2" rx="1" fill="currentColor" opacity=".3"/></svg>
+    ),
     component: SummaryWidget,
     editable: true,
     defaultData: {
@@ -19,33 +24,75 @@ const WIDGET_TEMPLATES = [
       financialUrl: "#",
     },
   },
+  {
+    type: "description",
+    name: "Description",
+    description: "A detailed company description",
+    icon: (
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" className="text-blue-500"><rect x="4" y="6" width="16" height="4" rx="2" fill="currentColor"/><rect x="4" y="10" width="16" height="4" rx="2" fill="currentColor" opacity=".5"/><rect x="4" y="14" width="16" height="4" rx="2" fill="currentColor" opacity=".2"/></svg>
+    ),
+    component: DescriptionWidget,
+    editable: true,
+    defaultData: {
+      description: "DICK'S Sporting Goods, Inc., together with its subsidiaries, operates as a sporting goods retailer..."
+    },
+  },
+  // Add more templates here as needed
 ];
 
-const WidgetTemplateModal = ({ templates, onSelect, onClose }) => (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-    <div className="bg-white rounded-xl shadow-lg p-6 min-w-[300px]">
-      <h3 className="text-lg font-semibold mb-4">Select a Widget Template</h3>
-      <ul>
-        {templates.map((template) => (
-          <li key={template.type} className="mb-2">
-            <button
-              className="w-full text-left px-4 py-2 rounded hover:bg-gray-100"
-              onClick={() => onSelect(template)}
-            >
-              {template.name}
-            </button>
-          </li>
-        ))}
-      </ul>
-      <button
-        className="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-        onClick={onClose}
-      >
-        Cancel
-      </button>
+const WidgetTemplateModal = ({ templates, onSelect, onClose }) => {
+  const [search, setSearch] = useState("");
+
+  // Filter templates by search query (name or description)
+  const filtered = templates.filter(t =>
+    t.name.toLowerCase().includes(search.toLowerCase()) ||
+    t.description.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+      <div className="bg-white rounded-2xl shadow-lg min-w-[400px] max-w-[480px] w-full">
+        <div className="px-8 pt-8 pb-2">
+          <h2 className="text-3xl font-bold mb-6">New Widget</h2>
+          <input
+            className="w-full mb-6 px-4 py-2 rounded border border-gray-200 bg-gray-50 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            placeholder="Search Widgets..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            autoFocus
+          />
+          <div className="pb-4 max-h-[340px] overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="text-gray-400 text-center py-8">No widgets found.</div>
+            ) : (
+              filtered.map(t => (
+                <button
+                  key={t.type}
+                  className="flex items-center w-full text-left px-4 py-4 mb-3 bg-white rounded-xl border border-gray-200 hover:bg-gray-50 transition group shadow-sm"
+                  onClick={() => onSelect(t)}
+                >
+                  <div className="flex-shrink-0 mr-4">{t.icon}</div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-lg text-gray-900 group-hover:text-blue-700">{t.name}</div>
+                    <div className="text-gray-500 text-sm mt-1">{t.description}</div>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+        <div className="px-8 pb-6 flex justify-start">
+          <button
+            className="text-blue-500 hover:underline text-base font-medium mt-2"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const WidgetActions = ({ isEditing, onEdit, onSave, onDelete }) => (
   <>
@@ -238,6 +285,8 @@ WidgetTemplateModal.propTypes = {
     PropTypes.shape({
       type: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      description: PropTypes.string.isRequired,
+      icon: PropTypes.node,
       component: PropTypes.elementType.isRequired,
       editable: PropTypes.bool.isRequired,
       defaultData: PropTypes.object.isRequired,
